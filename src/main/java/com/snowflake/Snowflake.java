@@ -4,10 +4,8 @@ import java.math.BigInteger;
 import java.time.Instant;
 
 public final class Snowflake implements Comparable<Snowflake> {
-
-    /** The UNIX time that represents epoch (January 1, 2015)К. */
-    public static final long EPOCH = 1420070400000L;
-
+    /** The UNIX time that represents epoch (Thu Nov 15, 2001)К. */
+    public static final long EPOCH = 1005771600000L;
     /**
      * Constructs a {@code Snowflake} utilizing an <i>unsigned</i> ID.
      *
@@ -74,6 +72,22 @@ public final class Snowflake implements Comparable<Snowflake> {
 
     /** The <i>unsigned</i> ID. */
     private final long id;
+    /**
+     * The machine or process ID, its value can't be modified after initialization.
+     */
+    private final long workerId;
+    /**
+     * The process ID running on, its value can't be modified after initialization.
+     */
+    private final long processId;
+    /**
+     * For every ID that is generated on that process, this number is incremented
+     */
+    private final long increment;
+
+    public Snowflake() {
+        this((System.currentTimeMillis() - Snowflake.EPOCH) << 22);
+    }
 
     /**
      * Constructs a {@code Snowflake} utilizing an <i>unsigned</i> ID.
@@ -82,6 +96,17 @@ public final class Snowflake implements Comparable<Snowflake> {
      */
     private Snowflake(final long id) {
         this.id = id;
+        this.workerId = (id & 0x3E0000) >> 17;
+        this.processId = (id & 0x1F000) >> 12;
+        this.increment = id & 0xFFF;
+    }
+
+    public long getWorkerId() {
+        return workerId;
+    }
+
+    public long getProcessId() {
+        return processId;
     }
 
     /**
@@ -171,9 +196,5 @@ public final class Snowflake implements Comparable<Snowflake> {
     @Override
     public String toString() {
         return "Snowflake{" + asString() + "}";
-    }
-
-    public static void main(String[] args) {
-        System.out.println(new Snowflake(1274945663721017376L));
     }
 }
